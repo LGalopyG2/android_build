@@ -73,6 +73,8 @@ PRODUCT_PACKAGES += \
     uncrypt \
     voip-common \
     webview \
+    libwebviewchromium_plat_support \
+    libwebviewchromium_loader \
     wifi-service
 
 PRODUCT_COPY_FILES += \
@@ -96,6 +98,7 @@ PRODUCT_BOOT_JARS := \
 
 # The order of PRODUCT_SYSTEM_SERVER_JARS matters.
 PRODUCT_SYSTEM_SERVER_JARS := \
+    org.cyanogenmod.platform \
     org.cyanogenmod.hardware \
     services \
     ethernet-service \

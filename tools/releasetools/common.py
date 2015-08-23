@@ -1126,7 +1126,7 @@ class BlockDifference:
   def WriteScript(self, script, output_zip, progress=None):
     if not self.src:
       # write the output unconditionally
-      script.Print("Patching %s image unconditionally..." % (self.partition,))
+      script.Print("Your %s is now being Electrified..." % (self.partition,))
     else:
       script.Print("Patching %s image after verification." % (self.partition,))
 
