@@ -1407,6 +1407,11 @@ DISTTOOLS :=  $(HOST_OUT_EXECUTABLES)/minigzip \
 	  $(HOST_OUT_EXECUTABLES)/append2simg \
 	  $(HOST_OUT_EXECUTABLES)/boot_signer
 
+ifneq (,$(filter linux darwin,$(HOST_OS)))
+  DISTTOOLS += $(HOST_OUT_EXECUTABLES)/mkf2fsuserimg.sh \
+	$(HOST_OUT_EXECUTABLES)/make_f2fs
+endif
+
 OTATOOLS := $(DISTTOOLS) \
 	  $(HOST_OUT_EXECUTABLES)/aapt
 
@@ -1712,10 +1717,7 @@ ifneq ($(TARGET_UNIFIED_DEVICE),)
 endif
 
 ifneq ($(BLOCK_BASED_OTA),false)
-
     $(INTERNAL_OTA_PACKAGE_TARGET): block_based := --block
-endif
-
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 	@echo "$(OTA_FROM_TARGET_SCRIPT)" > $(PRODUCT_OUT)/ota_script_path
 	@echo "$(override_device)" > $(PRODUCT_OUT)/ota_override_device
@@ -1729,6 +1731,20 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 	   --override_device=$(override_device) $(override_prop) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
+else
+$(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
+	@echo "$(OTA_FROM_TARGET_SCRIPT)" > $(PRODUCT_OUT)/ota_script_path
+	@echo "$(override_device)" > $(PRODUCT_OUT)/ota_override_device
+	@echo -e ${CL_YLW}"Package OTA:"${CL_RST}" $@"
+	$(hide) MKBOOTIMG=$(MKBOOTIMG) \
+	   $(OTA_FROM_TARGET_SCRIPT) -v \
+	   -p $(HOST_OUT) \
+	   -k $(KEY_CERT_PAIR) \
+	   --backup=$(backuptool) \
+	   --override_device=$(override_device) $(override_prop) \
+	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
+	   $(BUILT_TARGET_FILES_PACKAGE) $@
+endif
 
 TESLA_TARGET_PACKAGE := $(PRODUCT_OUT)/$(TESLA_MOD_VERSION).zip
 
