@@ -17,23 +17,33 @@ LLVM_LINK := $(LLVM_PREBUILTS_PATH)/llvm-link$(BUILD_EXECUTABLE_SUFFIX)
 CLANG_TBLGEN := $(BUILD_OUT_EXECUTABLES)/clang-tblgen$(BUILD_EXECUTABLE_SUFFIX)
 LLVM_TBLGEN := $(BUILD_OUT_EXECUTABLES)/llvm-tblgen$(BUILD_EXECUTABLE_SUFFIX)
 
+# The C/C++ compiler can be wrapped by setting the CC/CXX_WRAPPER vars.
+ifdef CC_WRAPPER
+  ifneq ($(CC_WRAPPER),$(firstword $(CLANG)))
+    CLANG := $(CC_WRAPPER) $(CLANG)
+  endif
+endif
+ifdef CXX_WRAPPER
+  ifneq ($(CXX_WRAPPER),$(firstword $(CLANG_CXX)))
+    CLANG_CXX := $(CXX_WRAPPER) $(CLANG_CXX)
+  endif
+endif
+
 # Clang flags for all host or target rules
 CLANG_CONFIG_EXTRA_ASFLAGS :=
 CLANG_CONFIG_EXTRA_CFLAGS :=
-ifeq ($(PULSE),true)
-CLANG_CONFIG_EXTRA_CPPFLAGS := -O3 -Qunused-arguments -Wno-unknown-warning-option -D__compiler_offsetof=__builtin_offsetof
-else
 CLANG_CONFIG_EXTRA_CPPFLAGS :=
-endif
 CLANG_CONFIG_EXTRA_LDFLAGS :=
 
-ifeq ($(PULSE),true)
-CLANG_CONFIG_EXTRA_CFLAGS += \
-  -O3 -Qunused-arguments -Wno-unknown-warning-option -D__compiler_offsetof=__builtin_offsetof
-else
+# ArchiDroid
+include $(BUILD_SYSTEM)/archidroid.mk
+CLANG_CONFIG_EXTRA_CFLAGS += $(ARCHIDROID_CLANG_CFLAGS)
+CLANG_CONFIG_EXTRA_CPPFLAGS += $(ARCHIDROID_CLANG_CPPFLAGS)
+CLANG_CONFIG_EXTRA_LDFLAGS += $(ARCHIDROID_CLANG_LDFLAGS)
+
 CLANG_CONFIG_EXTRA_CFLAGS += \
   -D__compiler_offsetof=__builtin_offsetof
-endif
+
 # Help catch common 32/64-bit errors.
 CLANG_CONFIG_EXTRA_CFLAGS += \
   -Werror=int-conversion
@@ -43,10 +53,8 @@ CLANG_CONFIG_EXTRA_CFLAGS += \
 CLANG_CONFIG_EXTRA_CFLAGS += \
   -Wno-unused-command-line-argument
 
-CLANG_CONFIG_EXTRA_CFLAGS += \
-  -Wno-unknown-warning-option
-
 CLANG_CONFIG_UNKNOWN_CFLAGS := \
+  $(ARCHIDROID_CLANG_UNKNOWN_FLAGS) \
   -funswitch-loops \
   -fno-tree-sra \
   -finline-limit=64 \
